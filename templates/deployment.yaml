@@ -2,67 +2,49 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: {{ include "k8s-core-keeper-server.fullname" . }}
-  labels:
-    {{- include "k8s-core-keeper-server.labels" . | nindent 4 }}
 spec:
-  {{- if not .Values.autoscaling.enabled }}
-  replicas: {{ .Values.replicaCount }}
-  {{- end }}
   selector:
     matchLabels:
       {{- include "k8s-core-keeper-server.selectorLabels" . | nindent 6 }}
+  replicas: 1
   template:
     metadata:
-      {{- with .Values.podAnnotations }}
-      annotations:
-        {{- toYaml . | nindent 8 }}
-      {{- end }}
       labels:
         {{- include "k8s-core-keeper-server.labels" . | nindent 8 }}
-        {{- with .Values.podLabels }}
-        {{- toYaml . | nindent 8 }}
-        {{- end }}
     spec:
-      {{- with .Values.imagePullSecrets }}
-      imagePullSecrets:
-        {{- toYaml . | nindent 8 }}
-      {{- end }}
-      serviceAccountName: {{ include "k8s-core-keeper-server.serviceAccountName" . }}
-      securityContext:
-        {{- toYaml .Values.podSecurityContext | nindent 8 }}
       containers:
-        - name: {{ .Chart.Name }}
-          securityContext:
-            {{- toYaml .Values.securityContext | nindent 12 }}
-          image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
-          imagePullPolicy: {{ .Values.image.pullPolicy }}
+        - name: corekeeper
+          image: escaping/core-keeper-dedicated
+          imagePullPolicy: Always
+          env:
+            - name: WORLD_INDEX
+              value: "0"
+            - name: WORLD_NAME
+              value: Cillian Murphy The Core
+            - name: WORLD_SEED
+              value: "0"
+            - name: GAME_ID
+              value: "9sgSTF4D5rkT9J8nf4cueafS9AZ9"
+            - name: DATA_PATH
+              value: ""
+            - name: MAX_PLAYERS
+              value: "10"
+            - name: DISCORD
+              value: "1"
+            - name: DISCORD_HOOK
+              value: "https://discord.com/api/webhooks/1285624982159753310/fN1luHKiHA1aRKr1NNXQUhcGhFqLUMvuN4rcbqmZZmmNeAyCkf_K9zm6uzGHYuVX8kW4"
+            - name: SEASON
+              value: ""
           ports:
-            - name: http
-              containerPort: {{ .Values.service.port }}
-              protocol: TCP
-          livenessProbe:
-            {{- toYaml .Values.livenessProbe | nindent 12 }}
-          readinessProbe:
-            {{- toYaml .Values.readinessProbe | nindent 12 }}
-          resources:
-            {{- toYaml .Values.resources | nindent 12 }}
-          {{- with .Values.volumeMounts }}
+            - containerPort: 27015
+              protocol: UDP
+              name: gameudp
           volumeMounts:
-            {{- toYaml . | nindent 12 }}
-          {{- end }}
-      {{- with .Values.volumes }}
+            - name: data
+              mountPath: /home/steam/core-keeper-data
+              # mountPath: /config
       volumes:
-        {{- toYaml . | nindent 8 }}
-      {{- end }}
-      {{- with .Values.nodeSelector }}
-      nodeSelector:
-        {{- toYaml . | nindent 8 }}
-      {{- end }}
-      {{- with .Values.affinity }}
-      affinity:
-        {{- toYaml . | nindent 8 }}
-      {{- end }}
-      {{- with .Values.tolerations }}
-      tolerations:
-        {{- toYaml . | nindent 8 }}
-      {{- end }}
+        - name: data
+          persistentVolumeClaim:
+            claimName: {{ include "k8s-core-keeper-server.fullname" . }}
+
