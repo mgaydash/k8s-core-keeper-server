@@ -16,25 +16,9 @@ spec:
         - name: corekeeper
           image: escaping/core-keeper-dedicated
           imagePullPolicy: Always
-          env:
-            - name: WORLD_INDEX
-              value: "0"
-            - name: WORLD_NAME
-              value: Cillian Murphy The Core
-            - name: WORLD_SEED
-              value: "0"
-            - name: GAME_ID
-              value: "9sgSTF4D5rkT9J8nf4cueafS9AZ9"
-            - name: DATA_PATH
-              value: ""
-            - name: MAX_PLAYERS
-              value: "10"
-            - name: DISCORD
-              value: "1"
-            - name: DISCORD_HOOK
-              value: "https://discord.com/api/webhooks/1285624982159753310/fN1luHKiHA1aRKr1NNXQUhcGhFqLUMvuN4rcbqmZZmmNeAyCkf_K9zm6uzGHYuVX8kW4"
-            - name: SEASON
-              value: ""
+          envFrom:
+            - secretRef:
+                name: {{ include "k8s-core-keeper-server.fullname" . }}
           ports:
             - containerPort: 27015
               protocol: UDP
@@ -42,7 +26,6 @@ spec:
           volumeMounts:
             - name: data
               mountPath: /home/steam/core-keeper-data
-              # mountPath: /config
       volumes:
         - name: data
           persistentVolumeClaim:
