@@ -25,9 +25,8 @@ spec:
               name: gameudp
           volumeMounts:
             - name: data
-              mountPath: /home/steam/core-keeper-data
+              mountPath: /home/steam/.config/unity3d/Pugstorm/Core Keeper/DedicatedServer/worlds
       volumes:
         - name: data
           persistentVolumeClaim:
             claimName: {{ include "k8s-core-keeper-server.fullname" . }}
-
